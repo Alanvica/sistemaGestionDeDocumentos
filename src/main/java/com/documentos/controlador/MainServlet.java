@@ -33,7 +33,7 @@ public class MainServlet extends HttpServlet {
     String driver = "com.mysql.jdbc.Driver";
     String url = "jdbc:mysql://localhost:3306/db_sis_gestion_documento";
     String usuario = "root";
-    String password = "";
+    String password = "1234";
     Connection conn = null;
     String sql = "";
     PreparedStatement ps = null;
@@ -43,7 +43,7 @@ public class MainServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action") != null ? request.getParameter("action") : "view";
-
+       
         ArrayList<detalle_documento> lista = new ArrayList<detalle_documento>();
         ArrayList<categoria> lista2 = new ArrayList<categoria>();
         switch (action) {
@@ -160,6 +160,14 @@ public class MainServlet extends HttpServlet {
                 request.setAttribute("det_doc", det_doc);
                 request.setAttribute("documento", documento);
                 request.getRequestDispatcher("SubirDocumento.jsp").forward(request, response);
+                case"buscar":
+                    request.getRequestDispatcher("ResultadoBusquedajsp").forward(request, response);
+                    
+            case"categoria":
+                categoria cat = new categoria();
+                request.setAttribute("categoria", cat);
+
+        request.getRequestDispatcher("CrearCategoria.jsp").forward(request, response);
             default:
                 throw new AssertionError();
         }
@@ -170,6 +178,10 @@ public class MainServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String op = request.getParameter("op");
+         String busqueda = request.getParameter("busqueda");
+        String filtro = request.getParameter("filtro");
+        request.setAttribute("resultado", "Resultado de la búsqueda con filtro " + filtro + ": " + busqueda);
+
         PreparedStatement ps = null;
         ResultSet rs = null;
         switch (op) {
@@ -214,11 +226,16 @@ public class MainServlet extends HttpServlet {
                 System.out.println("Error al conectar " + e.getMessage());
             }
             break;
+            
             default:
                 throw new AssertionError();
+                
         }
+       
+        
 
-    }
+    
+    }}
     
 
-}
+

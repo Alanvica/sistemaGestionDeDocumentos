@@ -24,7 +24,7 @@
                 <td>
                     <select id="color">
                         <option value="general">sin filtro</option>
-                        <option value="nombre">Nonbre</option>
+                        <option value="nombre">Nombre</option>
                         <option value="fecha">Fecha</option>
                         <option value="descripcion">Descripcion</option>
                         <option value="usuario">Usuario</option>

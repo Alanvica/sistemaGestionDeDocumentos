@@ -8,7 +8,12 @@ import com.documentos.documento;
 import com.documentos.categoria;
 import com.documentos.detalle_documento;
 import com.documentos.usuario;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,12 +21,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 
+@MultipartConfig(
+        location = "C:\\Users\\Villalba\\Desktop\\si",
+        fileSizeThreshold = 1024 * 1024, //1MB
+        maxFileSize = 1024 * 1024 * 10, //10MB
+        maxRequestSize = 1024 * 1024 * 11 //11MB
+)
 
 /**
  *
@@ -33,17 +49,18 @@ public class MainServlet extends HttpServlet {
     String driver = "com.mysql.jdbc.Driver";
     String url = "jdbc:mysql://localhost:3306/db_sis_gestion_documento";
     String usuario = "root";
-    String password = "1234";
+    String password = "";
     Connection conn = null;
     String sql = "";
     PreparedStatement ps = null;
     ResultSet rs = null;
     usuario user = new usuario();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action") != null ? request.getParameter("action") : "view";
-       
+
         ArrayList<detalle_documento> lista = new ArrayList<detalle_documento>();
         ArrayList<categoria> lista2 = new ArrayList<categoria>();
         switch (action) {
@@ -61,7 +78,7 @@ public class MainServlet extends HttpServlet {
                         rs = ps.executeQuery();
 
                         while (rs.next()) {
-                            //System.out.println(rs.getString("titulo"));
+                            System.out.println(rs.getString("titulo"));
                             detalle_documento doc = new detalle_documento();
                             doc.setId_det(rs.getInt("id"));
                             doc.setNombre(rs.getString("titulo"));
@@ -160,14 +177,15 @@ public class MainServlet extends HttpServlet {
                 request.setAttribute("det_doc", det_doc);
                 request.setAttribute("documento", documento);
                 request.getRequestDispatcher("SubirDocumento.jsp").forward(request, response);
-                case"buscar":
-                    request.getRequestDispatcher("ResultadoBusquedajsp").forward(request, response);
-                    
-            case"categoria":
+                break;
+            case "buscar":
+                request.getRequestDispatcher("ResultadoBusquedajsp").forward(request, response);
+                break;
+            case "categoria":
                 categoria cat = new categoria();
                 request.setAttribute("categoria", cat);
 
-        request.getRequestDispatcher("CrearCategoria.jsp").forward(request, response);
+                request.getRequestDispatcher("CrearCategoria.jsp").forward(request, response);
             default:
                 throw new AssertionError();
         }
@@ -178,7 +196,7 @@ public class MainServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String op = request.getParameter("op");
-         String busqueda = request.getParameter("busqueda");
+        String busqueda = request.getParameter("busqueda");
         String filtro = request.getParameter("filtro");
         request.setAttribute("resultado", "Resultado de la búsqueda con filtro " + filtro + ": " + busqueda);
 
@@ -205,7 +223,7 @@ public class MainServlet extends HttpServlet {
                     String direccion_usr = rs.getString("direccion");
                     String usuario_usr = rs.getString("usuario");
                     String contraseña_usr = rs.getString("contrasena");
-                    
+
                     user.setId(id_usr);
                     user.setNombres(nombres_usr);
                     user.setApellidos(apellidos_usr);
@@ -226,16 +244,80 @@ public class MainServlet extends HttpServlet {
                 System.out.println("Error al conectar " + e.getMessage());
             }
             break;
-            
+            case "guardar":
+                try {
+                    int id_det = Integer.parseInt(request.getParameter("id_det"));
+                    int id_cat = Integer.parseInt(request.getParameter("id_cat"));
+                    String titulo = request.getParameter("titulo");
+                    String fecha = request.getParameter("fecha");
+                    String contenido = "vacio";
+                    Part archivo = request.getPart("archivo");
+                    contenido = convertFileToBase64String(archivo);
+                    String formato = request.getParameter("formato");
+                    String descripcion = request.getParameter("descripcion");
+                    int id_cate = Integer.parseInt(request.getParameter("categoria"));
+                    if (id_det == 0) {
+                        formato = archivo.getContentType();
+                        sql = "INSERT INTO DETALLE_DOCUMENTO (nombre, fecha, archivo, formato, id_categoria, descripcion) VALUES (?, ?, ?, ?, ?, ?)";
+                        ps = conn.prepareStatement(sql);
+                        ps.setString(1, titulo);
+                        ps.setString(2, fecha);
+                        ps.setString(3, contenido);
+                        ps.setString(4, formato);
+                        ps.setInt(5, id_cate);
+                        ps.setString(6, descripcion);
+                        ps.executeUpdate();
+                        sql = "SELECT id_detalle FROM DETALLE_DOCUMENTO ORDER BY id_detalle DESC LIMIT 1";
+                        rs = ps.executeQuery(sql);
+                        if (rs.next()) {
+                            id_det=rs.getInt("id_detalle");
+                            sql = "INSERT INTO DOCUMENTO(id_detalle) VALUES(?)";
+                            ps = conn.prepareStatement(sql);
+                            ps.setInt(1, id_det);
+                            ps.executeUpdate();
+                        }
+                        
+                    }
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                } catch (SQLException ex) {
+                    System.out.println(ex.getMessage());
+                }
+                response.sendRedirect("MainServlet?action=view");
+                break;
             default:
                 throw new AssertionError();
-                
+
         }
-       
-        
 
-    
-    }}
-    
-
-
+    }
+    // funcion para convertir un archivo a base 64
+    private String convertFileToBase64String(Part filePart) throws IOException {
+        try (InputStream fileContent = filePart.getInputStream()) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1048576 * 10];
+            int bytesRead;
+            while ((bytesRead = fileContent.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            byte[] fileBytes = outputStream.toByteArray();
+            return Base64.getEncoder().encodeToString(fileBytes);
+        }
+    }
+    // funcion para descargar un archivo
+    public void saveBase64StringToFile(String base64String, String filePath) throws IOException {
+        byte[] fileBytes = Base64.getDecoder().decode(base64String);
+        try (OutputStream fileOutputStream = new FileOutputStream(filePath)) {
+            fileOutputStream.write(fileBytes);
+        }
+    }
+    // funcion para visualizar documento
+    private void showFileInBrowser(HttpServletResponse response, String base64String, String contentType) throws IOException {
+        byte[] fileBytes = Base64.getDecoder().decode(base64String);
+        response.setContentType(contentType);
+        response.setContentLength(fileBytes.length);
+        try (OutputStream out = response.getOutputStream()) {
+            out.write(fileBytes);
+        }
+    }
+}

@@ -1,5 +1,6 @@
-com\documentos\documento.class
 com\documentos\usuario.class
 com\documentos\detalle_documento.class
+com\documentos\busqueda\Busqueda.class
 com\documentos\controlador\MainServlet.class
+com\documentos\documento.class
 com\documentos\categoria.class

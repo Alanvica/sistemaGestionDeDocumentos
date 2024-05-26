@@ -10,6 +10,7 @@ public class detalle_documento {
     private String nombre;
     private String fecha;
     private String archivo;
+    private String formato;
     private int id_cat;
     private String descripcion;
 
@@ -19,6 +20,7 @@ public class detalle_documento {
         this.nombre = "";
         this.fecha = "";
         this.archivo = "";
+        this.formato = "";
         this.id_cat = 0;
         this.descripcion = "";
     }
@@ -78,5 +80,14 @@ public class detalle_documento {
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
     }
+
+    public String getFormato() {
+        return formato;
+    }
+
+    public void setFormato(String formato) {
+        this.formato = formato;
+    }
+    
     
 }

@@ -186,6 +186,10 @@ public class MainServlet extends HttpServlet {
                 request.setAttribute("categoria", cat);
 
                 request.getRequestDispatcher("CrearCategoria.jsp").forward(request, response);
+            case "usr":
+                request.setAttribute("user", user);
+                request.getRequestDispatcher("usuario.jsp").forward(request, response);
+                break;
             default:
                 throw new AssertionError();
         }
@@ -283,6 +287,12 @@ public class MainServlet extends HttpServlet {
                 } catch (SQLException ex) {
                     System.out.println(ex.getMessage());
                 }
+                response.sendRedirect("MainServlet?action=view");
+                break;
+            case "logout":
+                System.out.println("Cerrar");
+                usuario vacio = new usuario();
+                user = vacio;
                 response.sendRedirect("MainServlet?action=view");
                 break;
             default:

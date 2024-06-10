@@ -25,12 +25,12 @@
         <table>
             <tr>
                 <td><a href="MainServlet">OnlyDocs</a></td>
-            <form action="MainServlet" method="post">
+            <form action="MainServlet?buscar" method="post">
                 <td><input type="text" name="busqueda"></td>
                 <td>
                     <select id="color">
                         <option value="general">sin filtro</option>
-                        <option value="nombre">Nonbre</option>
+                        <option value="nombre">Nombre</option>
                         <option value="fecha">Fecha</option>
                         <option value="descripcion">Descripcion</option>
                         <option value="usuario">Usuario</option>
@@ -53,9 +53,10 @@
     <hr>
     <h1>Nuevo</h1>
     <form action="MainServlet?op=guardar" method="post" enctype="multipart/form-data">
+    
         <table>
-            <input type="hidden" name="id_det" value="<%=det_doc.getId_det()%>">         
-            <input type="hidden" name="id_cat" value="<%=det_doc.getId_cat()%>">
+        <input type="hidden" name="id_det" value="<%=det_doc.getId_det()%>">         
+        <input type="hidden" name="id_cat" value="<%=det_doc.getId_cat()%>">
             <tr>
                 <td>Titulo: </td>
                 <td><input type="text" name="titulo" value="<%=det_doc.getNombre()%>"></td>

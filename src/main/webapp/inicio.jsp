@@ -19,7 +19,7 @@
         <table>
             <tr>
                 <td><a href="MainServlet">OnlyDocs</a></td>
-            <form action="MainServlet" method="post">
+            <form action="MainServlet?buscar" method="post">
                 <td><input type="text" name="busqueda"></td>
                 <td>
                     <select id="color">
@@ -29,7 +29,7 @@
                         <option value="descripcion">Descripcion</option>
                         <option value="usuario">Usuario</option>
                     </select> </td>
-                </td>
+            </td>
                 <td><input type="submit" value="Buscar"></td>
             </form>
             <%
@@ -87,7 +87,7 @@
                 if (user.getId() != 0) {
 
             %>
-            <td><a href="CrearCategoria.jsp"><input type="button" value="+"></a></td>
+            <td><a href="MainServlet?action=categoria"><input type="button" value="+"></a></td>
             <td><a href="MainServlet?action=nuevo"><input type="button" value="▲"></a></td>
                     <%            }
                     %>

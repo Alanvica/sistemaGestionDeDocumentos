@@ -29,7 +29,7 @@
                         <option value="descripcion">Descripcion</option>
                         <option value="usuario">Usuario</option>
                     </select> </td>
-            </td>
+                </td>
                 <td><input type="submit" value="Buscar"></td>
             </form>
             <%
@@ -57,7 +57,7 @@
                             if (user.getId() != 0) {
 
                         %>
-                    <a href="borrarcategoria.jsp?id=${item.id}"><input type="button" value="X"></a>
+                    <a href="MainServlet?action=borrarCat&id=${item.id}" onclick="return(confirm('¿Esta seguro de borrar categoria?'))" ><input type="button" value="X"> </a>
                         <%            }
                         %>
                 </td>
@@ -74,7 +74,7 @@
                             if (user.getId() != 0) {
 
                         %>
-                    <a href="borrarcategoria.jsp?id=${item.id}"><input type="button" value="X"></a>
+                    <a href="MainServlet?action=borrarCat&id=${item.id}" onclick="return(confirm('¿Esta seguro de borrar categoria?'))" ><input type="button" value="X"> </a>
                         <%            }
                         %>
                 </td>

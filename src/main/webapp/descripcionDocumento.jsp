@@ -89,9 +89,9 @@
          <form action="MainServlet?op=descripcion" method="post">
        <div>
            <center>
-        <a href="document?action=editar&id=${param.id}"><button>Editar</button></a>
-        <a href="document?action=ver&id=${param.id}"><button>Ver</button></a>
-        <a href="document?action=descargar&id=${param.id}"><button>Descargar</button></a>
+        <a href="MainServlet?action=editDoc&id="><button>Editar</button></a>
+        <a href="MainServlet?action=verDoc&id="><button>Ver</button></a>
+        <a href="MainServlet?action=descargar&id="><button>Descargar</button></a>
            </center>
     </div>
          </form>

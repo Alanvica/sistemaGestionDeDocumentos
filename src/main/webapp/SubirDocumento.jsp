@@ -4,12 +4,16 @@
     Author     : Villalba
 --%>
 
+<%@page import="java.util.ArrayList"%>
+<%@page import="com.documentos.categoria"%>
+<%@page import="java.util.List"%>
 <%@page import="com.documentos.usuario"%>
 <%@page import="com.documentos.detalle_documento"%>
 <%@page import="com.documentos.documento"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
+    List<categoria> categorias = (ArrayList<categoria>) request.getAttribute("listaCat");
     usuario user = (usuario) request.getAttribute("user");
     documento documento = (documento) request.getAttribute("documento");
     detalle_documento det_doc = (detalle_documento) request.getAttribute("det_doc");
@@ -53,10 +57,9 @@
     <hr>
     <h1>Nuevo</h1>
     <form action="MainServlet?op=guardar" method="post" enctype="multipart/form-data">
-    
+
         <table>
-        <input type="hidden" name="id_det" value="<%=det_doc.getId_det()%>">         
-        <input type="hidden" name="id_cat" value="<%=det_doc.getId_cat()%>">
+            <input type="hidden" name="id_det" value="<%=det_doc.getId_det()%>">
             <tr>
                 <td>Titulo: </td>
                 <td><input type="text" name="titulo" value="<%=det_doc.getNombre()%>"></td>
@@ -67,7 +70,8 @@
             </tr>
             <tr>
                 <td>Archivo:</td>
-                <td><input type="file" name="archivo" accept=".txt, .pdf, .doc, .docx"></td>
+                <td> <iframe id="pdfViewer" width="180" height="200" frameborder="0"  ></iframe></td>
+            <td><input type="file" name="archivo" accept=".txt, .pdf, .doc, .docx"></td>
             </tr>
             <input type="hidden" name="formato" value="<%=det_doc.getFormato()%>">
             <tr>
@@ -77,13 +81,32 @@
             <tr>
                 <td>Categoria: </td>
                 <td>
-                    <select name="categoria">
-                        <option value="1">defecto</option>
+                    <select name="categoria_id">
+                        <%
+                            for (categoria cat : categorias) {
+                        %>
+                        <option value="<%=cat.getId()%>" 
+                                <%=(cat.getId() == det_doc.getId_cat()) ? "selected" : ""%> 
+                                > 
+                            <%=cat.getNombre()%> </option>
+                            <%}%>
                     </select>
                 </td>
             </tr>
         </table>
         <input type="submit" value="Guardar">
     </form>
+    <script>
+         // Cadena base64 del archivo PDF
+        var base64PDF = "<%=det_doc.getArchivo()%>"; // Reemplaza base64String con la cadena base64 del archivo PDF
+        
+        // Construir el objeto de datos URI
+        var pdfDataUri = "data:<%=det_doc.getFormato()%>;base64," + base64PDF;
+        
+        // Asignar el src del iframe al objeto de datos URI
+        document.getElementById('pdfViewer').setAttribute('src', pdfDataUri);
+        
+        console.log(pdfDataUri);
+    </script>
 </body>
 </html>

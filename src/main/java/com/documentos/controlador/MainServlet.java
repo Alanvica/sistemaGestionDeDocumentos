@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package com.documentos.controlador;
 
 import com.documentos.documento;
@@ -9,12 +5,10 @@ import com.documentos.categoria;
 import com.documentos.detalle_documento;
 import com.documentos.usuario;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -22,8 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -33,8 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 @MultipartConfig(
-        location = "C:\\Users\\nivek\\Desktop",
-        fileSizeThreshold = 1024 * 1024, //1MB
+        location = "C:\\Users\\Villalba\\Desktop",
+        fileSizeThreshold = 1024 * 1024 * 10, //1MB
         maxFileSize = 1024 * 1024 * 10, //10MB
         maxRequestSize = 1024 * 1024 * 11 //11MB
 )
@@ -49,7 +42,7 @@ public class MainServlet extends HttpServlet {
     String driver = "com.mysql.jdbc.Driver";
     String url = "jdbc:mysql://localhost:3306/db_sis_gestion_documento";
     String usuario = "root";
-    String password = "1234";
+    String password = "";
     Connection conn = null;
     String sql = "";
     PreparedStatement ps = null;
@@ -88,6 +81,7 @@ public class MainServlet extends HttpServlet {
                             doc.setDescripcion(rs.getString("descripcion"));
                             lista.add(doc);
                             //System.out.println("qwerty");
+                            System.out.println("cate: " + lista);
                         }
 
                         sql = "select * from categoria";
@@ -171,9 +165,31 @@ public class MainServlet extends HttpServlet {
                 request.getRequestDispatcher("iniciarSesion.jsp").forward(request, response);
                 break;
             case "nuevo":
+                List<categoria> listaCat2 = new ArrayList<categoria>();
+                try {
+
+                    sql = "Select * from categoria";
+                    ps = conn.prepareStatement(sql);
+                    rs = ps.executeQuery();
+                    while (rs.next()) {
+                        categoria cate_ = new categoria();
+                        int id_categoria = rs.getInt("id_categoria");
+                        int id_usuario = rs.getInt("id_usuario");
+                        String nombre = rs.getString("nombre");
+                        String descripcion = rs.getString("descripcion");
+                        cate_.setNombre(nombre);
+                        cate_.setDescripcion(descripcion);
+                        cate_.setId(id_categoria);
+                        cate_.setId_usr(id_usuario);
+                        listaCat2.add(cate_);
+                    }
+                } catch (Exception e) {
+                }
+
                 documento documento = new documento();
                 detalle_documento det_doc = new detalle_documento();
                 request.setAttribute("user", user);
+                request.setAttribute("listaCat", listaCat2);
                 request.setAttribute("det_doc", det_doc);
                 request.setAttribute("documento", documento);
                 System.out.println("det " + det_doc.getId_det());
@@ -189,7 +205,7 @@ public class MainServlet extends HttpServlet {
                 request.setAttribute("documento", doc);
                 request.getRequestDispatcher("categoria.jsp").forward(request, response);
                 break;
-              
+
             case "buscar":
                 documento D = new documento();
                 detalle_documento d_t = new detalle_documento();
@@ -208,11 +224,90 @@ public class MainServlet extends HttpServlet {
                 request.setAttribute("cat", cat);
                 request.getRequestDispatcher("CrearCategoria.jsp").forward(request, response);
                 break;
-           
+
             case "usr":
                 request.setAttribute("user", user);
                 request.getRequestDispatcher("usuario.jsp").forward(request, response);
                 break;
+            case "borrarCat":
+                try {
+                int id_cat = Integer.parseInt(request.getParameter("id"));
+                sql = "DELETE FROM CATEGORIA WHERE id_categoria = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, id_cat);
+                ps.executeUpdate();
+                response.sendRedirect(request.getContextPath() + "/MainServlet");
+            } catch (SQLException ex) {
+                System.out.println("LLave " + ex.getMessage());
+                response.sendRedirect(request.getContextPath() + "/MainServlet");
+            }
+            break;
+            case "editDoc":
+                try {
+                List<categoria> listaCat = new ArrayList<categoria>();
+
+                documento doc_ = new documento();
+                detalle_documento det_docu = new detalle_documento();
+                int id_det = Integer.parseInt(request.getParameter("id"));
+                sql = "Select * from documento where id_detalle = ? limit 1";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, id_det);
+                rs = ps.executeQuery();
+                while (rs.next()) {
+                    int id_documento = rs.getInt("id_documento");
+                    int id_detalle = rs.getInt("id_detalle");
+                    doc_.setId(id_documento);
+                    doc_.setId_det(id_detalle);
+                }
+                sql = "Select * from detalle_documento where id_detalle = ? limit 1";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, id_det);
+                rs = ps.executeQuery();
+                while (rs.next()) {
+                    int id_detalle = rs.getInt("id_detalle");
+                    int id_categoria = rs.getInt("id_categoria");
+                    String nombre = rs.getString("nombre");
+                    String fecha = rs.getString("fecha");
+                    String archivo = rs.getString("archivo");
+                    String formato = rs.getString("formato");
+                    String descripcion = rs.getString("descripcion");
+                    det_docu.setId_det(id_detalle);
+                    det_docu.setNombre(nombre);
+                    det_docu.setFecha(fecha);
+                    det_docu.setArchivo(archivo);
+                    det_docu.setFormato(formato);
+                    det_docu.setDescripcion(descripcion);
+                    det_docu.setId_cat(id_categoria);
+                }
+                sql = "Select * from categoria";
+                ps = conn.prepareStatement(sql);
+                rs = ps.executeQuery();
+                while (rs.next()) {
+                    categoria cate_ = new categoria();
+                    int id_categoria = rs.getInt("id_categoria");
+                    int id_usuario = rs.getInt("id_usuario");
+                    String nombre = rs.getString("nombre");
+                    String descripcion = rs.getString("descripcion");
+                    cate_.setNombre(nombre);
+                    cate_.setDescripcion(descripcion);
+                    cate_.setId(id_categoria);
+                    cate_.setId_usr(id_usuario);
+                    listaCat.add(cate_);
+                }
+                request.setAttribute("user", user);
+                request.setAttribute("listaCat", listaCat);
+                request.setAttribute("det_doc", det_docu);
+                request.setAttribute("documento", doc_);
+                System.out.println("det " + det_docu.getId_det());
+                System.out.println("cat " + det_docu.getId_cat());
+                System.out.println("doc " + doc_.getId());
+                request.getRequestDispatcher("SubirDocumento.jsp").forward(request, response);
+            } catch (Exception e) {
+                System.out.println("msg " + e.getMessage());
+
+            }
+
+            break;
             default:
                 throw new AssertionError();
         }
@@ -274,7 +369,7 @@ public class MainServlet extends HttpServlet {
             case "guardar":
                 try {
                 int id_det = Integer.parseInt(request.getParameter("id_det"));
-                int id_cat = Integer.parseInt(request.getParameter("id_cat"));
+                int id_cat = Integer.parseInt(request.getParameter("categoria_id"));
                 System.out.println("id_det " + id_det);
                 System.out.println("id_cat " + id_cat);
                 String titulo = request.getParameter("titulo");
@@ -284,9 +379,10 @@ public class MainServlet extends HttpServlet {
                 contenido = convertFileToBase64String(archivo);
                 String formato = request.getParameter("formato");
                 String descripcion = request.getParameter("descripcion");
-                int id_cate = Integer.parseInt(request.getParameter("categoria"));
+                int id_cate = Integer.parseInt(request.getParameter("categoria_id"));
                 if (id_det == 0) {
                     formato = archivo.getContentType();
+                    System.out.println("formato: " + formato);
                     sql = "INSERT INTO DETALLE_DOCUMENTO (nombre, fecha, archivo, formato, id_categoria, descripcion) VALUES (?, ?, ?, ?, ?, ?)";
                     ps = conn.prepareStatement(sql);
                     ps.setString(1, titulo);
@@ -306,6 +402,8 @@ public class MainServlet extends HttpServlet {
                         ps.executeUpdate();
                     }
 
+                } else {
+                    
                 }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
@@ -388,10 +486,10 @@ public class MainServlet extends HttpServlet {
                 contenido = convertFileToBase64String(archivo);
                 String formato = request.getParameter("formato");
                 String descripcion = request.getParameter("descripcion");
-                  if ("editar".equals(op)) {
+                if ("editar".equals(op)) {
                     response.sendRedirect("editarDocumento.jsp?id=" + id_det);
                 } else if ("ver".equals(op)) {
-                   
+
                     response.sendRedirect("verDocumento.jsp?id=" + id_det);
                 } else if ("descargar".equals(op)) {
 
@@ -401,13 +499,13 @@ public class MainServlet extends HttpServlet {
                     request.setAttribute("descripcion", descripcion);
 
                     request.getRequestDispatcher("categoria.jsp").forward(request, response);
-                }   
+                }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
             }
             response.sendRedirect("MainServlet?action=view");
             break;
-             case "descripcion22":
+            case "descripcion22":
                 try {
                 int id_det = Integer.parseInt(request.getParameter("id_det"));
                 int id_cat = Integer.parseInt(request.getParameter("id_cat"));
@@ -418,29 +516,26 @@ public class MainServlet extends HttpServlet {
                 contenido = convertFileToBase64String(archivo);
                 String formato = request.getParameter("formato");
                 String descripcion = request.getParameter("descripcion");
-                  if ("editar".equals(op)) {
+                if ("editar".equals(op)) {
                     response.sendRedirect("editarDocumento.jsp?id=" + id_det);
                 } else if ("ver".equals(op)) {
-                   
+
                     response.sendRedirect("verDocumento.jsp?id=" + id_det);
                 } else if ("descargar".equals(op)) {
 
                     response.getWriter().println("Descargando documento con ID: " + id_det);
                 } else {
 
-                   
                     request.setAttribute("descripcion", descripcion);
 
                     request.getRequestDispatcher("descripcionDocumento.jsp").forward(request, response);
                 }
-                
-                
+
             } catch (IOException e) {
                 System.out.println(e.getMessage());
             }
             response.sendRedirect("MainServlet?action=view");
             break;
-
             default:
                 throw new AssertionError();
 

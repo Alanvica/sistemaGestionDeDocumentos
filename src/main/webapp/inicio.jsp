@@ -8,6 +8,7 @@
     //ArrayList<detalle_documento> lista = (ArrayList<detalle_documento>) request.getAttribute("lista");
     //ArrayList<categoria> lista2 = (ArrayList<categoria>) request.getAttribute("lista2");
     usuario user = (usuario) request.getAttribute("user");
+    categoria des=(categoria) request.getAttribute("des");
 %>
 <!DOCTYPE html>
 <html>
@@ -60,6 +61,7 @@
                     <a href="MainServlet?action=borrarCat&id=${item.id}" onclick="return(confirm('¿Esta seguro de borrar categoria?'))" ><input type="button" value="X"> </a>
                         <%            }
                         %>
+                   
                 </td>
                 <%   c++;
                 } else {

@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -26,23 +28,19 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 @MultipartConfig(
-        location = "C:\\Users\\Villalba\\Desktop",
+        location = "C:\\Users\\nivek\\Desktop",
         fileSizeThreshold = 1024 * 1024 * 10, //1MB
         maxFileSize = 1024 * 1024 * 10, //10MB
         maxRequestSize = 1024 * 1024 * 11 //11MB
 )
 
-/**
- *
- * @author Villalba
- */
 @WebServlet(name = "MainServlet", urlPatterns = {"/MainServlet"})
 public class MainServlet extends HttpServlet {
 
     String driver = "com.mysql.jdbc.Driver";
     String url = "jdbc:mysql://localhost:3306/db_sis_gestion_documento";
     String usuario = "root";
-    String password = "";
+    String password = "1234";
     Connection conn = null;
     String sql = "";
     PreparedStatement ps = null;
@@ -167,7 +165,6 @@ public class MainServlet extends HttpServlet {
             case "nuevo":
                 List<categoria> listaCat2 = new ArrayList<categoria>();
                 try {
-
                     sql = "Select * from categoria";
                     ps = conn.prepareStatement(sql);
                     rs = ps.executeQuery();
@@ -197,26 +194,13 @@ public class MainServlet extends HttpServlet {
                 System.out.println("doc " + documento.getId());
                 request.getRequestDispatcher("SubirDocumento.jsp").forward(request, response);
                 break;
-            case "desc":
-                documento doc = new documento();
-                detalle_documento det_d = new detalle_documento();
-                request.setAttribute("user", user);
-                request.setAttribute("det_doc", det_d);
-                request.setAttribute("documento", doc);
+            case "descripcion":
+                categoria cate = new categoria();
+                sql = "select descripcion from categoria;";
+                request.setAttribute("cate", cate);
                 request.getRequestDispatcher("categoria.jsp").forward(request, response);
                 break;
 
-            case "buscar":
-                documento D = new documento();
-                detalle_documento d_t = new detalle_documento();
-                request.setAttribute("user", user);
-                request.setAttribute("det_doc", D);
-                request.setAttribute("documento", d_t);
-                System.out.println("det " + D.getId_det());
-                System.out.println("cat " + d_t.getId_cat());
-
-                request.getRequestDispatcher("ResultadoBusquedajsp").forward(request, response);
-                break;
             case "categoria":
                 categoria cat = new categoria();
                 System.out.println(user.getId() + "concha");
@@ -224,7 +208,6 @@ public class MainServlet extends HttpServlet {
                 request.setAttribute("cat", cat);
                 request.getRequestDispatcher("CrearCategoria.jsp").forward(request, response);
                 break;
-
             case "usr":
                 request.setAttribute("user", user);
                 request.getRequestDispatcher("usuario.jsp").forward(request, response);
@@ -335,8 +318,6 @@ public class MainServlet extends HttpServlet {
                 ps.setString(2, contrasena);
                 rs = ps.executeQuery();
                 if (rs.next()) {
-                    //agregar la al user en la variable sesion
-
                     int id_usr = rs.getInt("id_usuario");
                     String nombres_usr = rs.getString("nombres");
                     String apellidos_usr = rs.getString("apellidos");
@@ -403,7 +384,7 @@ public class MainServlet extends HttpServlet {
                     }
 
                 } else {
-                    
+
                 }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
@@ -419,47 +400,16 @@ public class MainServlet extends HttpServlet {
                 response.sendRedirect("MainServlet?action=view");
                 break;
             case "buscar":
-                try {
-                int id_usr = user.getId();
-                int id = Integer.parseInt(request.getParameter("id"));
-                int id_det = Integer.parseInt(request.getParameter("id_det"));
-                int id_cat = Integer.parseInt(request.getParameter("id_cat"));
-                String seleccionefiltro = request.getParameter("sin filtro");
-                String nombre = request.getParameter("nombre");
-                String fecha = request.getParameter("fecha");
-                String descripcion = request.getParameter("descripcion");
-                String usuario_usr = rs.getString("usuario");
-                if (id == 0) {
-                    sql = sql = "SELECT t1.id_detalle AS id, t1.nombre AS titulo, DATE_FORMAT(t1.fecha, '%Y-%m-%d') AS fecha, t1.archivo AS arch, t1.id_categoria AS id_cat, t1.descripcion AS descripcion FROM detalle_documento AS t1 JOIN detalle_documento AS t2 ON t1.id_detalle = t2.id_detalle WHERE t2.nombre LIKE '%Documento 1%'";
-                    ps = conn.prepareStatement(sql);
-                    ps.setInt(1, id_usr);
-                    ps.setString(2, nombre);
-                    ps.setString(3, descripcion);
-                    ps.executeUpdate();
-                    sql = "SELECT id_detalle FROM DETALLE_DOCUMENTO ORDER BY id_detalle DESC LIMIT 1";
-                    rs = ps.executeQuery(sql);
-                    if (rs.next()) {
-                        id_det = rs.getInt("id_detalle");
-                        sql = "INSERT INTO DOCUMENTO(id_detalle) VALUES(?)";
-                        ps = conn.prepareStatement(sql);
-                        ps.setInt(1, id_det);
-                        ps.executeUpdate();
-                    }
-                }
-            } catch (SQLException ex) {
-                System.out.println(ex.getMessage());
-            } catch (Exception es) {
-                System.out.println("error: " + es.getMessage());
-            }
-            response.sendRedirect("MainServlet?action=view");
-            break;
+                String nombuscar = request.getParameter("busqueda");
+
+                response.sendRedirect("MainServlet?action=view");
+                break;
             case "agregarC":
                 try {
                 int id_usr = user.getId();
                 int id = Integer.parseInt(request.getParameter("id"));
                 String nombre = request.getParameter("nombre");
                 String descripcion = request.getParameter("descripcion");
-
                 if (id == 0) {
                     sql = "INSERT INTO CATEGORIA (id_usuario, nombre, descripcion) VALUES (?,?,?)";
                     ps = conn.prepareStatement(sql);
@@ -476,36 +426,20 @@ public class MainServlet extends HttpServlet {
             response.sendRedirect("MainServlet?action=view");
             break;
             case "descripcion":
-                try {
-                int id_det = Integer.parseInt(request.getParameter("id_det"));
-                int id_cat = Integer.parseInt(request.getParameter("id_cat"));
-                String titulo = request.getParameter("titulo");
-                String fecha = request.getParameter("fecha");
-                String contenido = "vacio";
-                Part archivo = request.getPart("archivo");
-                contenido = convertFileToBase64String(archivo);
-                String formato = request.getParameter("formato");
-                String descripcion = request.getParameter("descripcion");
-                if ("editar".equals(op)) {
-                    response.sendRedirect("editarDocumento.jsp?id=" + id_det);
-                } else if ("ver".equals(op)) {
-
-                    response.sendRedirect("verDocumento.jsp?id=" + id_det);
-                } else if ("descargar".equals(op)) {
-
-                    response.getWriter().println("Descargando documento con ID: " + id_det);
-                } else {
-
-                    request.setAttribute("descripcion", descripcion);
-
-                    request.getRequestDispatcher("categoria.jsp").forward(request, response);
-                }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
+               try {
+                sql = "select descripcion from categoria ";
+                ps = conn.prepareStatement(sql);
+                categoria cate = new categoria();
+                response.sendRedirect(request.getContextPath() + "/MainServlet");
+                String descripcion = rs.getString("descripcion");
+                cate.setDescripcion(descripcion);
+                response.sendRedirect("MainServlet?action=view");
+                break;
+            } catch (SQLException e) {
+                System.out.println("Error al conectar " + e.getMessage());
             }
-            response.sendRedirect("MainServlet?action=view");
             break;
-            case "descripcion22":
+            case "descripcionDoc":
                 try {
                 int id_det = Integer.parseInt(request.getParameter("id_det"));
                 int id_cat = Integer.parseInt(request.getParameter("id_cat"));
@@ -562,6 +496,7 @@ public class MainServlet extends HttpServlet {
         byte[] fileBytes = Base64.getDecoder().decode(base64String);
         try (OutputStream fileOutputStream = new FileOutputStream(filePath)) {
             fileOutputStream.write(fileBytes);
+
         }
     }
 
@@ -572,6 +507,7 @@ public class MainServlet extends HttpServlet {
         response.setContentLength(fileBytes.length);
         try (OutputStream out = response.getOutputStream()) {
             out.write(fileBytes);
+
         }
     }
 }

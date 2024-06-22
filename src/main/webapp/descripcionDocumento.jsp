@@ -86,7 +86,7 @@
     </div>
     <br>
     <br>
-         <form action="MainServlet?op=descripcion" method="post">
+         <form action="MainServlet?op=descripcionDoc" method="post">
        <div>
            <center>
         <a href="MainServlet?action=editDoc&id="><button>Editar</button></a>

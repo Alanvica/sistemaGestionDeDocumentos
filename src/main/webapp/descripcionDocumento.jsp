@@ -89,8 +89,8 @@
          <form action="MainServlet?op=descripcionDoc" method="post">
        <div>
            <center>
-        <a href="MainServlet?action=editDoc&id="><button>Editar</button></a>
-        <a href="MainServlet?action=verDoc&id="><button>Ver</button></a>
+               <a href="MainServlet?action=editDoc&id="><button>Editar</button></a>
+        <a href="MainServlet?action=verDoc&id_detalle="><button>Ver</button></a>
         <a href="MainServlet?action=descargar&id="><button>Descargar</button></a>
            </center>
     </div>

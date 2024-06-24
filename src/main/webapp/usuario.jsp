@@ -37,7 +37,7 @@
             if (user.getId() != 0) {
 
         %>
-        <td ><a href="MainServlet?action=usuario"><%=user.getUsuario()%></a></td>
+        <td ><a href="MainServlet?action=usr"><%=user.getUsuario()%></a></td>
             <%            } else {
             %>
         <td ><a href="MainServlet?action=login">Iniciar Sesion</a></td>

@@ -53,7 +53,7 @@
                 <%
                     if (c != 11) {
                 %>
-                <td><a href="categoria.jsp?id=${item.id}"><input type="button" value="${item.nombre}"></a>
+                <td><a href="MainServlet?action=resuladoCat&id_categoria=${item.id}"><input type="button" value="${item.nombre}"></a>
                         <%
                             if (user.getId() != 0) {
 
@@ -71,7 +71,7 @@
         </table>
         <table >
             <tr>
-                <td><a href="categoria.jsp?id=${item.id}"><input type="button" value="${item.nombre}"></a>
+                <td><a href="MainServlet?action=resuladoCat&id_categoria=${item.id}"><input type="button" value="${item.nombre}"></a>
                         <%
                             if (user.getId() != 0) {
 

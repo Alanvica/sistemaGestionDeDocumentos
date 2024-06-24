@@ -1,13 +1,13 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@page import="com.documentos.detalle_documento"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.sql.Array"%>
 <%@page import="com.documentos.categoria"%>
 <%@page import="com.documentos.usuario"%>
 <%
     usuario user = (usuario) request.getAttribute("user");
-    categoria cate = (categoria) request.getAttribute("cate");
-    if (cate == null) {
-    out.println("Error: El objeto 'cate' es nulo.");
-} else {
-    out.println("Objeto 'cate' encontrado: " + cate.toString());
-}
+    //ArrayList<detalle_documento> listaDocCat = (ArrayList<detalle_documento>) request.getAttribute("listaDocCat");
+    int c=0;
 %>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -36,31 +36,36 @@
             </form>
         </tr>
     </table>
-    <style>
-        .description {
-            width: 55%;
-            padding: 30px;
-            border: 5px solid black;
-            border-radius: 15px;
-            background-color: #fff;
-        }
-    </style>
-
-<center><h1>CATEGORIA SELECCIONADA</h1></center>
-<div class="description">
-    <form action="MainServlet?op=descripcion" method="post" >
-        <table>  
-            <input type="hidden" name="id" value="<%=cate.getId() %>">
+    <table>
+        <tr>
+            <%c = 0;%>
+            <c:forEach var="item" items="${listaDocCat}">
+                <%
+                    if (c != 3) {
+                %>
+                <td>
+                    <a href="descripcionDocumento.jsp?id=${item.id_det}"> <img src="pdf.png" width="250" height="250"> </a>
+                </td>
+                <td>
+                    <table><tr><td>${item.nombre}</td></tr><tr><td>${item.fecha}</td></tr><tr><td>${item.descripcion}</td></tr></table>
+                </td>
+                <%   c++;
+                } else {
+                    c = 0;
+                %>
             <tr>
-                <td>Nombre: </td>
-                <td><input type="text" name="nombre" value="<%=cate.getNombre()%>"></td>
-            </tr>
-            <tr>
-                <td>Descripcion: </td>
-                <td><input type="text" name="descripcion" value="<%=cate.getDescripcion()%>"></td>
-            </tr>
-
-    </form>
-</div>
+                <td>
+                    <a href="descripcionDocumento.jsp?id=${item.id_det}"> <img src="pdf.png" width="250" height="250"> </a>
+                </td>
+                <td>
+                    <table><tr><td>${item.nombre}</td></tr><tr><td>${item.fecha}</td></tr><tr><td>${item.descripcion}</td></tr></table>
+                </td>
+                <%
+                        c++;
+                    }
+                %>
+            </c:forEach>
+        </tr>
+    </table>
 </body>
 </html>

@@ -46,7 +46,7 @@
                 if (user.getId() != 0) {
 
             %>
-            <td ><a href="MainServlet?action=usuario"><%=user.getUsuario()%></a></td>
+            <td ><a href="MainServlet?action=usr"><%=user.getUsuario()%></a></td>
                 <%            } else {
                 %>
             <td ><a href="MainServlet?action=login">Iniciar Sesion</a></td>
@@ -55,11 +55,22 @@
         </tr>
     </table>
     <hr>
-    <h1>Nuevo</h1>
+    <%if (det_doc.getId_det() != 0) {
+    %>
+    <h1>Editar documento</h1>
+    <%
+    } else {
+    %>
+    <h1>Nuevo documento</h1>
+    <%
+        }
+    %>
     <form action="MainServlet?op=guardar" method="post" enctype="multipart/form-data">
 
         <table>
             <input type="hidden" name="id_det" value="<%=det_doc.getId_det()%>">
+            <input type="hidden" name="id_doc" value="<%=documento.getId()%>">
+            <input type="hidden" name="contenido" value="<%=det_doc.getArchivo()%>">
             <tr>
                 <td>Titulo: </td>
                 <td><input type="text" name="titulo" value="<%=det_doc.getNombre()%>"></td>
@@ -68,11 +79,24 @@
                 <td>fecha: </td>
                 <td><input type="date" name="fecha" value="<%=det_doc.getFecha()%>"></td>
             </tr>
+            <%if (det_doc.getId_det() != 0) {
+            %>
+            <tr>
+                <td>Archivo Actual:</td>
+                <td> <iframe id="pdfViewer" width="180" height="200" frameborder="0"  ></iframe></td>
+                <td><span>¿Cambiar archivo? </span><input type="file" name="archivo" accept=".txt, .pdf, .doc, .docx"></td>
+            </tr>
+            <%
+            } else {
+            %>
             <tr>
                 <td>Archivo:</td>
-                <td> <iframe id="pdfViewer" width="180" height="200" frameborder="0"  ></iframe></td>
-            <td><input type="file" name="archivo" accept=".txt, .pdf, .doc, .docx"></td>
+                <td><input type="file" name="archivo" accept=".txt, .pdf, .doc, .docx"></td>
             </tr>
+            <%
+                }
+            %>
+
             <input type="hidden" name="formato" value="<%=det_doc.getFormato()%>">
             <tr>
                 <td>Descripcion: </td>
@@ -97,15 +121,15 @@
         <input type="submit" value="Guardar">
     </form>
     <script>
-         // Cadena base64 del archivo PDF
+        // Cadena base64 del archivo PDF
         var base64PDF = "<%=det_doc.getArchivo()%>"; // Reemplaza base64String con la cadena base64 del archivo PDF
-        
+
         // Construir el objeto de datos URI
         var pdfDataUri = "data:<%=det_doc.getFormato()%>;base64," + base64PDF;
-        
+
         // Asignar el src del iframe al objeto de datos URI
         document.getElementById('pdfViewer').setAttribute('src', pdfDataUri);
-        
+
         console.log(pdfDataUri);
     </script>
 </body>

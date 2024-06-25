@@ -88,6 +88,8 @@ public class detalle_documento {
     public void setFormato(String formato) {
         this.formato = formato;
     }
-    
+
+   
+
     
 }

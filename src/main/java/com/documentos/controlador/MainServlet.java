@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -26,7 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 @MultipartConfig(
-        location = "C:\\Users\\Villalba\\Desktop",
+        location = "C:\\Users\\nivek\\Desktop",
         fileSizeThreshold = 1024 * 1024 * 10, //1MB
         maxFileSize = 1024 * 1024 * 10, //10MB
         maxRequestSize = 1024 * 1024 * 11 //11MB
@@ -34,17 +36,17 @@ import javax.servlet.http.Part;
 
 @WebServlet(name = "MainServlet", urlPatterns = {"/MainServlet"})
 public class MainServlet extends HttpServlet {
-
+    int cd=0;
     String driver = "com.mysql.jdbc.Driver";
     String url = "jdbc:mysql://localhost:3306/db_sis_gestion_documento";
     String usuario = "root";
-    String password = "";
+    String password = "1234";
     Connection conn = null;
     String sql = "";
     PreparedStatement ps = null;
     ResultSet rs = null;
     usuario user = new usuario();
-
+    ArrayList<detalle_documento> listar= new ArrayList<detalle_documento>();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -60,7 +62,7 @@ public class MainServlet extends HttpServlet {
 
                         conn = DriverManager.getConnection(url, usuario, password);
 
-                        sql = "select t1.id_detalle as id, t1.nombre as titulo, DATE_FORMAT(t1.fecha, '%Y-%m-%d') as fecha, t1.archivo as arch, t1.id_categoria as id_cat ,t1.descripcion as descripcion from detalle_documento as t1, documento as t2 where t1.id_detalle=t2.id_detalle";
+                        sql = "SELECT t1.id_detalle AS id, t1.nombre AS titulo, DATE_FORMAT(t1.fecha, '%Y-%m-%d') AS fecha, t1.archivo AS arch, t1.formato AS formato, t1.id_categoria AS id_cat,t1.descripcion AS descripcion FROM detalle_documento AS t1, documento AS t2 WHERE t1.id_detalle = t2.id_detalle ORDER BY t2.id_documento DESC;";
 
                         ps = conn.prepareStatement(sql);
 
@@ -68,11 +70,13 @@ public class MainServlet extends HttpServlet {
 
                         while (rs.next()) {
                             System.out.println(rs.getString("titulo"));
+                            System.out.println(rs.getString("formato"));
                             detalle_documento doc = new detalle_documento();
                             doc.setId_det(rs.getInt("id"));
                             doc.setNombre(rs.getString("titulo"));
                             doc.setFecha(rs.getString("fecha"));
                             doc.setArchivo(rs.getString("arch"));
+                            doc.setFormato(rs.getString("formato"));
                             doc.setId_cat(rs.getInt("id_cat"));
                             doc.setDescripcion(rs.getString("descripcion"));
                             lista.add(doc);
@@ -111,7 +115,7 @@ public class MainServlet extends HttpServlet {
 
                         conn = DriverManager.getConnection(url, usuario, password);
 
-                        sql = "select t1.id_detalle as id, t1.nombre as titulo, DATE_FORMAT(t1.fecha, '%Y-%m-%d') as fecha, t1.archivo as arch, t1.id_categoria as id_cat ,t1.descripcion as descripcion from detalle_documento as t1, documento as t2 where t1.id_detalle=t2.id_detalle and t1.id_categoria=1";
+                        sql = "SELECT t1.id_detalle AS id, t1.nombre AS titulo, DATE_FORMAT(t1.fecha, '%Y-%m-%d') AS fecha, t1.archivo AS arch, t1.formato AS formato, t1.id_categoria AS id_cat,t1.descripcion AS descripcion FROM detalle_documento AS t1, documento AS t2 WHERE t1.id_detalle = t2.id_detalle and t1.id_categoria=1 ORDER BY t2.id_documento DESC;";
 
                         ps = conn.prepareStatement(sql);
 
@@ -201,7 +205,8 @@ public class MainServlet extends HttpServlet {
                         ps = conn.prepareStatement(sql);
                         ps.setInt(1, id_categoria1);
                         rs = ps.executeQuery();
-                        while (rs.next()) {                            
+                        while (rs.next()) {
+
                             detalle_documento det_docu = new detalle_documento();
                             det_docu.setId_det(rs.getInt("id_detalle"));
                             det_docu.setNombre(rs.getString("nombre"));
@@ -213,14 +218,100 @@ public class MainServlet extends HttpServlet {
                             det_docu.setDescripcion(rs.getString("descripcion"));
                             listaDocCat.add(det_docu);
                         }
+                        sql = "select * from categoria";
+                        ps = conn.prepareStatement(sql);
+
+                        rs = ps.executeQuery();
+
+                        while (rs.next()) {
+                            //System.out.println(rs.getString("nombre"));
+                            categoria cat = new categoria();
+                            cat.setId(rs.getInt("id_categoria"));
+                            cat.setId_usr(rs.getInt("id_usuario"));
+                            cat.setNombre(rs.getString("nombre"));
+                            cat.setDescripcion(rs.getString("descripcion"));
+                            lista2.add(cat);
+                        }
                     } catch (SQLException ex) {
-                        System.out.println("mgs"+ ex.getMessage());
+                        System.out.println("mgs" + ex.getMessage());
                     }
                 }
                 request.setAttribute("user", user);
+                request.setAttribute("lista2", lista2);
                 request.setAttribute("listaDocCat", listaDocCat);
                 request.getRequestDispatcher("categoria.jsp").forward(request, response);
                 break;
+            case "descripcionDoc":
+                detalle_documento det_documento = new detalle_documento();
+                ArrayList<detalle_documento> listaDocumento = new ArrayList<detalle_documento>();
+                int id_documento1 = Integer.parseInt(request.getParameter("id_documento"));
+                sql = "SELECT d.id_detalle,d.nombre,d.fecha,d.archivo,d.formato,d.id_categoria,c.nombre AS nombre_categoria,d.id_usuario,u.nombres AS nombre_usuario,d.descripcion FROM detalle_documento d JOIN categoria c ON d.id_categoria = c.id_categoria JOIN usuario u ON d.id_usuario = u.id_usuario WHERE d.id_detalle=?";
+                categoria categoria = new categoria();
+                usuario usr = new usuario();
+                detalle_documento det_docum = new detalle_documento();
+                try {
+                    ps = conn.prepareStatement(sql);
+                    ps.setInt(1, id_documento1);
+                    rs = ps.executeQuery();
+                    int id_c = 0;
+                    int id_u = 0;
+
+                    while (rs.next()) {
+                        id_u = rs.getInt("id_usuario");
+                        id_c = rs.getInt("id_categoria");
+                        det_docum.setId_det(rs.getInt("id_detalle"));
+                        det_docum.setNombre(rs.getString("nombre"));
+                        det_docum.setFecha(rs.getString("fecha"));
+                        det_docum.setArchivo(rs.getString("archivo"));
+                        det_docum.setFormato(rs.getString("formato"));
+                        det_docum.setId_cat(rs.getInt("id_categoria"));
+                        det_docum.setId_usr(rs.getInt("id_usuario"));
+                        det_docum.setDescripcion(rs.getString("descripcion"));
+
+                    }
+                    sql = "select * from categoria where id_categoria=?";
+                    ps = conn.prepareStatement(sql);
+                    ps.setInt(1, id_c);
+                    rs = ps.executeQuery();
+                    while (rs.next()) {
+
+                        categoria.setId(rs.getInt("id_categoria"));
+                        categoria.setId_usr(rs.getInt("id_usuario"));
+                        categoria.setNombre(rs.getString("nombre"));
+                        categoria.setDescripcion(rs.getString("Descripcion"));
+
+                    }
+                    sql = "select * from usuario where id_usuario=?";
+                    ps = conn.prepareStatement(sql);
+                    ps.setInt(1, id_u);
+                    rs = ps.executeQuery();
+                    while (rs.next()) {
+                        //System.out.println("jajaja"+rs.getString("usuario"));
+                        usr.setId(rs.getInt("id_usuario"));
+                        usr.setNombres(rs.getString("nombres"));
+                        usr.setApellidos(rs.getString("apellidos"));
+                        usr.setTelefono(rs.getInt("telefono"));
+                        usr.setEmail(rs.getString("email"));
+                        usr.setDireccion(rs.getString("direccion"));
+                        usr.setContrasena(rs.getString("contrasena"));
+                        usr.setUsuario(rs.getString("usuario"));
+                    }
+                } catch (SQLException ex) {
+                    System.out.println("mgs" + ex.getMessage());
+                }
+
+                request.setAttribute("user", user);
+                request.setAttribute("usuario", usr);
+                request.setAttribute("categoria", categoria);
+                request.setAttribute("detalle_documento", det_docum);
+                request.getRequestDispatcher("descripcionDocumento.jsp").forward(request, response);
+                break;
+            case "buscar":
+                
+                //detalle_documento lista1 = new detalle_documento();
+                request.setAttribute("user", user);
+                request.setAttribute("lista1", listar);
+                request.getRequestDispatcher("ResultadoBusqueda.jsp").forward(request, response);
 
             case "categoria":
                 categoria cat = new categoria();
@@ -249,7 +340,6 @@ public class MainServlet extends HttpServlet {
             case "editDoc":
                 try {
                 List<categoria> listaCat = new ArrayList<categoria>();
-
                 documento doc_ = new documento();
                 detalle_documento det_docu = new detalle_documento();
                 int id_det = Integer.parseInt(request.getParameter("id"));
@@ -322,19 +412,38 @@ public class MainServlet extends HttpServlet {
                 ps = conn.prepareStatement(sql);
                 ps.setInt(1, id_detalle);
                 rs = ps.executeQuery();
-                    if (rs.next()) {
-                        String archivo = rs.getString("archivo");
-                        String formato = rs.getString("formato");
-                        showFileInBrowser(response, archivo, formato);
-                    }
-                
+                if (rs.next()) {
+                    String archivo = rs.getString("archivo");
+                    String formato = rs.getString("formato");
+                    showFileInBrowser(response, archivo, formato);
+                }
+
             } catch (SQLException e) {
-                System.out.println("msg: "+ e.getMessage());
+                System.out.println("msg: " + e.getMessage());
             }
-                
             break;
+            case"descargar":
+                try{
+                 
+                int id=Integer.parseInt(request.getParameter("id"));
+                sql = "select * from detalle_documento where id_detalle = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, id);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    String archivo = rs.getString("archivo");
+                    String formato = rs.getString("formato");
+                    saveBase64StringToFile(archivo, formato);
+                }
+                
+                request.getRequestDispatcher("MainServlet?action=descripcionDoc&id_documento="+id).forward(request, response);
+                } catch (SQLException e) {
+                System.out.println("msg: " + e.getMessage());
+            }
+                break;
             default:
                 throw new AssertionError();
+            
         }
 
     }
@@ -473,10 +582,34 @@ public class MainServlet extends HttpServlet {
                 response.sendRedirect("MainServlet?action=view");
                 break;
             case "buscar":
-                String nombuscar = request.getParameter("busqueda");
-
-                response.sendRedirect("MainServlet?action=view");
+                int id_det = user.getId();
+              
+                //detalle_documento lista1 = new detalle_documento();
+                String buscar = request.getParameter("busqueda");
+                try {
+                    listar=new ArrayList<detalle_documento>();
+                    sql = "select * from detalle_documento as t1, documento as t2 where t1.id_detalle=t2.id_detalle and (t1.nombre LIKE '%" + buscar + "%' or t1.fecha LIKE '%" + buscar + "%' or t1.descripcion LIKE '%" + buscar + "%')" ;
+                    ps = conn.prepareStatement(sql);
+                    rs = ps.executeQuery();
+                    while(rs.next()){
+                        detalle_documento de= new detalle_documento();
+                        de.setId_det(rs.getInt("id_detalle"));
+                        de.setNombre(rs.getString("nombre"));
+                        de.setFecha(rs.getString("fecha"));
+                        de.setArchivo(rs.getString("archivo"));
+                        de.setFormato(rs.getString("formato"));
+                        de.setId_cat(rs.getInt("id_categoria"));
+                        de.setId_usr(rs.getInt("id_usuario"));
+                        de.setDescripcion(rs.getString("descripcion"));
+                        listar.add(de);
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(MainServlet.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                response.sendRedirect("MainServlet?action=buscar");
                 break;
+
             case "agregarC":
                 try {
                 int id_usr = user.getId();
@@ -512,37 +645,7 @@ public class MainServlet extends HttpServlet {
                 System.out.println("Error al conectar " + e.getMessage());
             }
             break;
-            case "descripcionDoc":
-                try {
-                int id_det = Integer.parseInt(request.getParameter("id_det"));
-                int id_cat = Integer.parseInt(request.getParameter("id_cat"));
-                String titulo = request.getParameter("titulo");
-                String fecha = request.getParameter("fecha");
-                String contenido = "vacio";
-                Part archivo = request.getPart("archivo");
-                contenido = convertFileToBase64String(archivo);
-                String formato = request.getParameter("formato");
-                String descripcion = request.getParameter("descripcion");
-                if ("editar".equals(op)) {
-                    response.sendRedirect("editarDocumento.jsp?id=" + id_det);
-                } else if ("ver".equals(op)) {
 
-                    response.sendRedirect("verDocumento.jsp?id=" + id_det);
-                } else if ("descargar".equals(op)) {
-
-                    response.getWriter().println("Descargando documento con ID: " + id_det);
-                } else {
-
-                    request.setAttribute("descripcion", descripcion);
-
-                    request.getRequestDispatcher("descripcionDocumento.jsp").forward(request, response);
-                }
-
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-            response.sendRedirect("MainServlet?action=view");
-            break;
             default:
                 throw new AssertionError();
 
@@ -567,10 +670,29 @@ public class MainServlet extends HttpServlet {
     // funcion para descargar un archivo
     public void saveBase64StringToFile(String base64String, String filePath) throws IOException {
         byte[] fileBytes = Base64.getDecoder().decode(base64String);
-        try (OutputStream fileOutputStream = new FileOutputStream(filePath)) {
+        String ruta="C:\\Users\\nivek\\Desktop\\";
+        String formato="";
+        if("text/plain".equals(filePath)){
+            cd++;
+            formato= "descarga.txt";
+            try (OutputStream fileOutputStream = new FileOutputStream(ruta+formato)) {
             fileOutputStream.write(fileBytes);
-
-        }
+            }
+        }else if("application/pdf".equals(filePath)){
+            cd++;
+            formato= "descarga.pdf";
+            try (OutputStream fileOutputStream = new FileOutputStream(ruta+formato)) {
+            fileOutputStream.write(fileBytes);
+            }
+        }else if ("application/vnd.openxmlformats-officedocument.wordprocessingml.document".equals(filePath)){
+            cd++;
+            formato= "descarga.docx";
+            try (OutputStream fileOutputStream = new FileOutputStream(ruta+formato)) {
+            fileOutputStream.write(fileBytes);
+            }
+        }else {
+        
+    }    
     }
 
     // funcion para visualizar documento

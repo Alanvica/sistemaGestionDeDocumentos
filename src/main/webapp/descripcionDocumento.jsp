@@ -1,99 +1,134 @@
-<%@page import="com.documentos.usuario"%>
-<%@page import="com.documentos.detalle_documento"%>
-<%@page import="com.documentos.documento"%>
+<%@ page import="com.documentos.categoria" %>
+<%@ page import="com.documentos.detalle_documento" %>
+<%@ page import="com.documentos.usuario" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
-    documento doc = (documento) request.getAttribute("doc");
-    detalle_documento det_docu = (detalle_documento) request.getAttribute("det_docu");
+    //documento doc = (documento) request.getAttribute("doc");
+    detalle_documento det_docum = (detalle_documento) request.getAttribute("detalle_documento");
     usuario user = (usuario) request.getAttribute("user");
+    categoria categoria = (categoria) request.getAttribute("categoria");
+    usuario usr = (usuario) request.getAttribute("usuario");
+    int c = 0;
 %>
-
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html; charset=UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <table>
-            <tr>
-                <td><a href="MainServlet">OnlyDocs</a></td>
-            <form action="MainServlet?buscar" method="post">
-                <td><input type="text" name="busqueda"></td>
-                <td>
-                    <select id="color">
-                        <option value="general">sin filtro</option>
-                        <option value="nombre">Nombre</option>
-                        <option value="fecha">Fecha</option>
-                        <option value="descripcion">Descripcion</option>
-                        <option value="usuario">Usuario</option>
-                    </select> </td>
-                </td>
-                <td><input type="submit" value="Buscar"></td>
-            </form>
-           
-    </table>
-        <hr>
-    <center> <h1>Descripcion</h1></center>
-        <style>
-        .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Descripción Documento</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 2rem; /* Add padding to body to offset content */
         }
-        .box {
-            width: 30%;
-            padding: 30px;
-            border: 1px solid darkblue;
-            border-radius: 15px;
-            background-color: #f0f0f0;
+        .centered {
+            text-align: center;
         }
-        .description {
-            width: 55%;
-            padding: 30px;
-            border: 5px solid black;
-            border-radius: 15px;
-            background-color: #fff;
+        .image-thumbnail {
+            max-width: 250px;
+            max-height: 250px;
         }
-    </style> 
-    <br>
-    <br>
+        .table-bordered {
+            border: 2px solid #dee2e6; /* Bootstrap table border */
+        }
+    </style>
+</head>
+<body>
     <div class="container">
-        <div class="box">
-            <h3>Titulo de la categoria</h3>
-            <p>
-                Titulo Titulo Titulo Titulo Titulo 
-                Titulo Titulo Titulo Titulo Titulo
-                Titulo Titulo Titulo Titulo Titulo
-                Titulo Titulo Titulo Titulo Titulo
+        <table class="table">
+            <tr>
+                <td><a class="navbar-brand" href="MainServlet">OnlyDocs</a></td>
+                <form class="form-inline" action="MainServlet?op=buscar" method="post">
+                    <td><input class="form-control mr-sm-2" type="text" name="busqueda"></td>
+                    <td>
+                        <select class="form-control mr-sm-2" id="color">
+                            <option value="general">sin filtro</option>
+                            <option value="nombre">Nombre</option>
+                            <option value="fecha">Fecha</option>
+                            <option value="descripcion">Descripción</option>
+                            <option value="usuario">Usuario</option>
+                        </select>
+                    </td>
+                    <td><button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button></td>
+                </form>
+                <% if (user.getId() != 0) { %>
+                    <td><a class="nav-link" href="MainServlet?action=usr"><%= user.getUsuario() %></a></td>
+                <% } else { %>
+                    <td><a class="nav-link" href="MainServlet?action=login">Iniciar Sesión</a></td>
+                <% } %>
+            </tr>
+        </table>
+
+        <hr>
+        <center><h1><b>Descripcion del Documento</b></h1></center>
+        <br>
+        <div class="row">
+            <div class="col-md-4">
+                <img src="https://cdn.icon-icons.com/icons2/2036/PNG/512/blank_file_page_empty_document_icon_124196.png" class="img-fluid image-thumbnail" alt="PDF Thumbnail">
+                <h1><%= det_docum.getNombre() %></h1>
+            </div>
+            <div class="col-md-8">
                 
-            </p>
+                <table class="table table-bordered">
+                     
+                    <tr>
+                        <td>Subido por:</td>
+                        <td><%= usr.getNombres()%></td>
+                    </tr>
+                    
+                   <tr>
+                        <td>Subido el:</td>
+                        <td><%= det_docum.getFecha()%></td>
+                    </tr>
+                    <tr>
+                        <td>Descripcion del Documento:</td>
+                        <td><%= det_docum.getDescripcion() %></td>
+                    </tr>
+                    <tr>
+                        <td>Nombre de la categoría:</td>
+                        <td><%= categoria.getNombre() %></td>
+                    </tr>
+                    <tr>
+                        
+                        <td>Descripción de la categoría:</td>
+                        <td><%= categoria.getDescripcion() %></td>
+                    </tr>
+                   
+                </table>
+                <div class="centered mt-4">
+                    <a href="MainServlet?action=editDoc&id=<%= det_docum.getId_det()%>" class="btn btn-primary">Editar</a>
+                    <a href="MainServlet?action=verDoc&id_detalle=<%= det_docum.getId_det()%>" class="btn btn-info">Ver</a>
+                    <a href="MainServlet?action=descargar&id=<%= det_docum.getId_det()%>" class="btn btn-success">Descargar</a>
+                </div>
+            </div>
         </div>
-        <div class="description">
-            <h3>Descripción de categoria seleccionada</h3>
-            <table>
-                <p>
-                Esta es una descripción de texto simple para mostrar en una página web.
-                Puedes agregar aquí todo el texto que desees, formatearlo como prefieras y
-                personalizar la página según tus necesidades.
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-                </p>
-            </table>
-            <p>
-                Aquí puedes incluir más contenido HTML o código JSP según tus necesidades.
-            </p>
+
+        <div class="centered mt-4">
+            
+            <c:forEach var="item" items="${listaDocCat}">
+                <div class="card mb-3" style="max-width: 540px;">
+                    <div class="row no-gutters">
+                        <div class="col-md-4">
+                            <a href="descripcionDocumento.jsp?id=${item.id_det}">
+                                <img src="pdf.png" class="card-img image-thumbnail" alt="PDF Thumbnail">
+                            </a>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">${item.nombre}</h5>
+                                <p class="card-text">Fecha: ${item.fecha}</p>
+                                <p class="card-text">Descripción: ${item.descripcion}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </c:forEach>
         </div>
+
     </div>
-    <br>
-    <br>
-         <form action="MainServlet?op=descripcionDoc" method="post">
-       <div>
-           <center>
-               <a href="MainServlet?action=editDoc&id="><button>Editar</button></a>
-        <a href="MainServlet?action=verDoc&id_detalle="><button>Ver</button></a>
-        <a href="MainServlet?action=descargar&id="><button>Descargar</button></a>
-           </center>
-    </div>
-         </form>
-    </body>
+
+    <!-- Bootstrap JS (Optional) - If you need Bootstrap JavaScript functionalities -->
+    <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> -->
+</body>
 </html>
